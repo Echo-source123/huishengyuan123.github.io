@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>待办事项管理系统（最终版）</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft Yahei", Arial, sans-serif;
+    }
+    body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f7fa;
+    }
+    /* 登录页面样式 */
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+    .login-title {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 22px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #34495e;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #2980b9;
+    }
+    .login-tip {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+    .error-msg {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+    /* 主页面样式 */
+    .main-container {
+      display: none;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .header-title {
+      color: #2c3e50;
+      font-size: 24px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .admin-btn {
+      padding: 6px 12px;
+      background-color: #9b59b6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .admin-btn:hover {
+      background-color: #8e44ad;
+    }
+    .logout-btn {
+      padding: 6px 12px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+    /* 功能切换标签 */
+    .tab-container {
+      display: flex;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #eee;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      border: none;
+      background-color: #eee;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .tab-btn.active {
+      background-color: #3498db;
+      color: white;
+    }
+    .tab-btn:not(.active):hover {
+      background-color: #ddd;
+    }
+    /* 通用卡片样式 */
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      display: none;
+    }
+    .card.active {
+      display: block;
+    }
+    .card-title {
+      color: #2c3e50;
+      margin-bottom: 25px;
+      font-size: 18px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    /* 创建待办表单样式 */
+    textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      min-height: 120px;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    }
+    /* 我的待办列表样式 */
+    .filter-btn-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .filter-btn {
+      padding: 8px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .filter-btn.active {
+      background-color: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+    .todo-item {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      background-color: #fefefe;
+      cursor: pointer;
+      transition: box-shadow 0.3s;
+    }
+    .todo-item:hover {
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .todo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .todo-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .todo-status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending {
+      background-color: #ffeaa7;
+      color: #e67e22;
+    }
+    .status-completed {
+      background-color: #a5d6a7;
+      color: #2e7d32;
+    }
+    .todo-meta {
+      color: #7f8c8d;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .todo-brief {
+      color: #34495e;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .message {
+      text-align: center;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+    .empty-tip {
+      text-align: center;
+      color: #7f8c8d;
+      padding: 30px 0;
+      font-size: 14px;
+    }
+    /* 提醒弹窗样式 */
+    .reminder-modal {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 15px;
+      z-index: 9999;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .reminder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .reminder-title {
+      font-weight: 600;
+      color: #e67e22;
+    }
+    .reminder-close {
+      cursor: pointer;
+      font-size: 18px;
+      color: #7f8c8d;
+    }
+    .reminder-content {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #34495e;
+    }
+    /* 催办弹窗样式（需确认） */
+    .remind-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+      padding: 30px;
+      z-index: 10002;
+      border: 2px solid #e74c3c;
+    }
+    .remind-header {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e74c3c;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .remind-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #34495e;
+      margin-bottom: 20px;
+    }
+    .remind-confirm {
+      width: 100%;
+      padding: 10px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .remind-confirm:hover {
+      background-color: #c0392b;
+    }
+    /* 管理员弹窗样式 */
+    .admin-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .admin-modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+    }
+    .admin-modal-title {
+      font-size: 20px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .close-modal {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    .user-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 20px 0;
+      border: 1px solid #eee;
+      border-radius: 6px;
+    }
+    .user-item {
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .user-item:last-child {
+      border-bottom: none;
+    }
+    .user-role {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: white;
+    }
+    .role-admin {
+      background-color: #9b59b6;
+    }
+    .role-user {
+      background-color: #3498db;
+    }
+    /* 待办详情弹窗样式 */
+    .todo-detail-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10001;
+      padding: 20px;
+    }
+    .todo-detail-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 600px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    .detail-title {
+      font-size: 20px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    .detail-close {
+      font-size: 20px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    .detail-meta {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+    .meta-item {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #34495e;
+    }
+    .meta-label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-right: 5px;
+    }
+    .detail-content {
+      margin-bottom: 20px;
+    }
+    .content-label {
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+      color: #2c3e50;
+    }
+    .edit-content {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    /* 图片上传样式 */
+    .upload-section {
+      margin-bottom: 20px;
+    }
+    .upload-btn {
+      display: inline-block;
+      padding: 8px 15px;
+      background-color: #3498db;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    #imageUpload {
+      display: none;
+    }
+    .preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .image-preview-wrapper {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+    .image-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .delete-img-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+    .delete-img-btn:hover {
+      background-color: #c0392b;
+    }
+    /* 详情页操作按钮组 */
+    .detail-action {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .save-btn {
+      padding: 8px 20px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .save-btn:hover {
+      background-color: #219653;
+    }
+    .complete-btn-detail {
+      padding: 8px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .complete-btn-detail:hover {
+      background-color: #2980b9;
+    }
+    /* 催办按钮样式 */
+    .remind-btn {
+      padding: 8px 20px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .remind-btn:hover {
+      background-color: #c0392b;
+    }
+    /* 删除待办按钮样式 */
+    .delete-todo-btn {
+      padding: 8px 20px;
+      background-color: #95a5a6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-todo-btn:hover {
+      background-color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div class="login-container" id="loginPage">
+    <h2 class="login-title">待办事项管理系统</h2>
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input type="text" id="username" placeholder="请输入用户名（超级管理员：admin）">
+      <div class="error-msg" id="userError">用户名不能为空</div>
+    </div>
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input type="password" id="password" placeholder="请输入密码（超级管理员：123456）">
+      <div class="error-msg" id="pwdError">密码不能为空</div>
+    </div>
+    <button class="btn" id="loginBtn">登录</button>
+    <div class="login-tip">超级管理员：admin / 123456（仅管理员可创建账号）</div>
+  </div>
+
+  <!-- 主页面（登录后显示） -->
+  <div class="main-container" id="mainPage">
+    <div class="header">
+      <h1 class="header-title">待办事项管理</h1>
+      <div class="user-info">
+        <span id="currentUser"></span>
+        <button class="admin-btn" id="adminBtn" style="display: none;">账号管理</button>
+        <button class="logout-btn" id="logoutBtn">退出登录</button>
+      </div>
+    </div>
+
+    <!-- 功能切换标签 -->
+    <div class="tab-container">
+      <button class="tab-btn active" data-tab="create-todo">创建待办</button>
+      <button class="tab-btn" data-tab="my-todo">我的待办</button>
+    </div>
+
+    <!-- 创建待办卡片 -->
+    <div class="card active" id="create-todo">
+      <h2 class="card-title">新增待办事项</h2>
+      <form id="todoForm">
+        <div class="form-group">
+          <label for="title">待办标题 <span style="color: red;">*</span></label>
+          <input type="text" id="title" name="title" required placeholder="请输入待办标题（如：完成项目报告）">
+        </div>
+        <div class="form-group">
+          <label for="content">待办详情</label>
+          <textarea id="content" name="content" placeholder="请输入待办详细内容（选填）"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="executor">执行人 <span style="color: red;">*</span></label>
+          <input type="text" id="executor" name="executor" required placeholder="请输入执行人姓名（需为系统已存在账号）">
+        </div>
+        <div class="form-group">
+          <label for="deadline">截止时间 <span style="color: #e74c3c;">（提醒依据）</span></label>
+          <input type="datetime-local" id="deadline" name="deadline">
+        </div>
+        <button type="submit" class="btn">提交待办</button>
+        <div id="message" class="message"></div>
+      </form>
+    </div>
+
+    <!-- 我的待办卡片 -->
+    <div class="card" id="my-todo">
+      <h2 class="card-title">我的待办事项</h2>
+      <div class="filter-btn-group">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="pending">待处理</button>
+        <button class="filter-btn" data-filter="completed">已完成</button>
+      </div>
+      <div id="todoList"></div>
+    </div>
+  </div>
+
+  <!-- 管理员账号管理弹窗 -->
+  <div class="admin-modal" id="adminModal">
+    <div class="admin-modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h3 class="admin-modal-title">账号管理</h3>
+      <div class="form-group">
+        <label for="newUsername">新建用户名</label>
+        <input type="text" id="newUsername" placeholder="请输入新账号用户名">
+      </div>
+      <div class="form-group">
+        <label for="newPassword">新建密码</label>
+        <input type="password" id="newPassword" placeholder="请输入新账号密码">
+      </div>
+      <div class="form-group">
+        <label for="userRole">账号角色</label>
+        <select id="userRole" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+          <option value="user">普通用户</option>
+          <option value="admin">管理员</option>
+        </select>
+      </div>
+      <button class="btn" id="createUserBtn">创建账号</button>
+      <h4 style="margin-top: 20px; color: #34495e;">现有账号列表</h4>
+      <div class="user-list" id="userList"></div>
+    </div>
+  </div>
+
+  <!-- 待办详情弹窗 -->
+  <div class="todo-detail-modal" id="todoDetailModal">
+    <div class="todo-detail-content">
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle"></div>
+        <span class="detail-close" id="detailClose">&times;</span>
+      </div>
+      <div class="detail-meta">
+        <div class="meta-item"><span class="meta-label">创建人：</span><span id="detailCreator"></span></div>
+        <div class="meta-item"><span class="meta-label">执行人：</span><span id="detailExecutor"></span></div>
+        <div class="meta-item"><span class="meta-label">创建时间：</span><span id="detailCreateTime"></span></div>
+        <div class="meta-item"><span class="meta-label">截止时间：</span><span id="detailDeadline"></span></div>
+        <div class="meta-item"><span class="meta-label">状态：</span><span id="detailStatus"></span></div>
+      </div>
+      <div class="detail-content">
+        <span class="content-label">待办详情（可编辑）：</span>
+        <textarea class="edit-content" id="editContent"></textarea>
+      </div>
+      <div class="upload-section">
+        <span class="content-label">图片附件：</span>
+        <label class="upload-btn">
+          上传图片
+          <input type="file" id="imageUpload" accept="image/*" multiple>
+        </label>
+        <div class="preview-container" id="imagePreview"></div>
+      </div>
+      <div class="detail-action">
+        <button class="complete-btn-detail" id="detailCompleteBtn">标记为完成</button>
+        <button class="remind-btn" id="detailRemindBtn" style="display: none;">催办</button>
+        <button class="delete-todo-btn" id="detailDeleteBtn" style="display: none;">删除待办</button>
+        <button class="save-btn" id="detailSaveBtn">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局变量
+    let reminderTimer = null; // 提醒定时器
+    const CHECK_INTERVAL = 30 * 1000; // 每30秒检查一次待办
+    const REMIND_TIME = 15 * 60 * 1000; // 提前15分钟提醒
+    let currentFilter = 'all'; // 当前筛选状态
+    let currentTodoId = null; // 当前查看的待办ID
+    let currentTodoOwner = null; // 当前待办所属用户
+    let currentTodoCreator = null; // 当前待办创建人
+    let currentTodoExecutor = null; // 当前待办执行人
+
+    // 页面加载完成后立即执行初始化
+    window.onload = function() {
+      // 初始化用户数据（预设超级管理员）
+      initUserStorage();
+      // 请求通知权限
+      requestNotificationPermission();
+      // 立即绑定登录按钮事件
+      bindLoginBtnEvent();
+      // 检查是否已登录
+      checkLoginStatus();
+      // 绑定管理员弹窗事件
+      bindAdminEvents();
+      // 绑定标签切换事件
+      bindTabEvents();
+      // 绑定筛选事件
+      bindFilterEvents();
+      // 绑定详情弹窗事件
+      bindDetailEvents();
+      // 绑定图片上传事件
+      bindImageUpload();
+    };
+
+    // 初始化用户存储
+    function initUserStorage() {
+      try {
+        const users = localStorage.getItem('todoUsers');
+        if (!users) {
+          // 预设超级管理员账号
+          const defaultAdmin = {
+            'admin': { 
+              password: '123456', 
+              todos: [],
+              role: 'admin' // 管理员角色
+            }
+          };
+          localStorage.setItem('todoUsers', JSON.stringify(defaultAdmin));
+        }
+      } catch (e) {
+        alert('初始化用户数据失败：' + e.message);
+      }
+    }
+
+    // 请求通知权限
+    function requestNotificationPermission() {
+      if (Notification && Notification.permission !== 'granted') {
+        Notification.requestPermission();
+      }
+    }
+
+    // 绑定登录按钮事件
+    function bindLoginBtnEvent() {
+      const loginBtn = document.getElementById('loginBtn');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const userError = document.getElementById('userError');
+      const pwdError = document.getElementById('pwdError');
+
+      // 点击登录按钮
+      loginBtn.onclick = function() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        let hasError = false;
+
+        // 清空之前的错误提示
+        userError.style.display = 'none';
+        pwdError.style.display = 'none';
+
+        // 验证输入
+        if (!username) {
+          userError.style.display = 'block';
+          hasError = true;
+        }
+
+        if (!password) {
+          pwdError.style.display = 'block';
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        try {
+          // 验证账号
+          const usersStr = localStorage.getItem('todoUsers');
+          if (!usersStr) {
+            alert('用户数据不存在，请刷新页面重试！');
+            return;
+          }
+          
+          const users = JSON.parse(usersStr);
+          if (users[username]) {
+            // 账号存在，验证密码
+            if (users[username].password === password) {
+              // 登录成功
+              loginSuccess(username);
+            } else {
+              alert('密码错误，请重试！');
+            }
+          } else {
+            alert('该账号不存在，请联系管理员创建！');
+          }
+        } catch (e) {
+          alert('登录验证失败：' + e.message);
+        }
+      };
+
+      // 回车登录
+      passwordInput.onkeyup = function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          loginBtn.click();
+        }
+      };
+
+      // 兼容：用户名框回车也触发登录
+      usernameInput.onkeyup = function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          passwordInput.focus();
+        }
+      };
+    }
+
+    // 登录成功处理
+    function loginSuccess(username) {
+      try {
+        // 记录登录状态
+        localStorage.setItem('currentLoginUser', username);
+        // 获取用户信息
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const userInfo = users[username];
+        
+        // 显示主页面，隐藏登录页
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainPage').style.display = 'block';
+        
+        // 显示当前用户和角色
+        const roleText = userInfo.role === 'admin' ? '（管理员）' : '（普通用户）';
+        document.getElementById('currentUser').textContent = `当前用户：${username} ${roleText}`;
+        
+        // 管理员显示账号管理按钮
+        if (userInfo.role === 'admin') {
+          document.getElementById('adminBtn').style.display = 'block';
+        } else {
+          document.getElementById('adminBtn').style.display = 'none';
+        }
+        
+        // 初始化主页面
+        initMainPage();
+        // 启动待办提醒定时器
+        startReminderTimer();
+        
+        // 登录成功提示
+        alert('登录成功！');
+      } catch (e) {
+        alert('登录后初始化失败：' + e.message);
+      }
+    }
+
+    // 检查登录状态
+    function checkLoginStatus() {
+      try {
+        const currentUser = localStorage.getItem('currentLoginUser');
+        if (currentUser) {
+          // 已登录，直接进入主页面
+          const usersStr = localStorage.getItem('todoUsers');
+          const users = JSON.parse(usersStr);
+          const userInfo = users[currentUser];
+          
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('mainPage').style.display = 'block';
+          
+          const roleText = userInfo.role === 'admin' ? '（管理员）' : '（普通用户）';
+          document.getElementById('currentUser').textContent = `当前用户：${currentUser} ${roleText}`;
+          
+          if (userInfo.role === 'admin') {
+            document.getElementById('adminBtn').style.display = 'block';
+          }
+          
+          initMainPage();
+          startReminderTimer();
+        }
+      } catch (e) {
+        console.error('检查登录状态失败：', e);
+      }
+    }
+
+    // 初始化主页面
+    function initMainPage() {
+      // 绑定表单提交
+      bindTodoForm();
+      // 绑定退出登录
+      bindLogout();
+      // 渲染待办列表
+      renderTodoList();
+    }
+
+    // 绑定标签切换事件
+    function bindTabEvents() {
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          // 切换标签激活状态
+          tabBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // 切换卡片显示
+          const tabId = this.getAttribute('data-tab');
+          const cards = document.querySelectorAll('.card');
+          cards.forEach(card => {
+            card.classList.remove('active');
+            if (card.id === tabId) {
+              card.classList.add('active');
+            }
+          });
+        });
+      });
+    }
+
+    // 绑定筛选事件
+    function bindFilterEvents() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          // 切换筛选按钮激活状态
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // 更新当前筛选状态
+          currentFilter = this.getAttribute('data-filter');
+          
+          // 重新渲染列表
+          renderTodoList();
+        });
+      });
+    }
+
+    // 绑定待办表单
+    function bindTodoForm() {
+      const form = document.getElementById('todoForm');
+      const message = document.getElementById('message');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const currentUser = localStorage.getItem('currentLoginUser');
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        
+        // 获取表单数据
+        const title = document.getElementById('title').value.trim();
+        const content = document.getElementById('content').value.trim();
+        const executor = document.getElementById('executor').value.trim();
+        const deadline = document.getElementById('deadline').value;
+
+        // 验证执行人是否存在
+        if (!users[executor]) {
+          message.className = 'message error';
+          message.textContent = `执行人${executor}不存在，请输入系统已存在的账号！`;
+          setTimeout(() => message.style.display = 'none', 3000);
+          return;
+        }
+
+        // 构造待办数据
+        const todoData = {
+          id: Date.now(),
+          title: title,
+          content: content,
+          executor: executor, // 执行人
+          creator: currentUser, // 创建人
+          deadline: deadline,
+          status: 'pending',
+          createTime: new Date().toLocaleString('zh-CN'),
+          images: [], // 图片附件
+          remindCount: 0 // 催办次数
+        };
+
+        // 保存待办（存储在创建人账号下）
+        users[currentUser].todos = users[currentUser].todos || [];
+        users[currentUser].todos.unshift(todoData);
+        localStorage.setItem('todoUsers', JSON.stringify(users));
+
+        // 提示成功
+        message.className = 'message success';
+        message.textContent = '待办事项添加成功！已通知执行人：' + executor;
+        setTimeout(() => message.style.display = 'none', 3000);
+
+        // 重置表单
+        form.reset();
+
+        // 发送通知给执行人
+        sendNotification('📋 新的待办事项已分配给你', 
+          `创建人：${currentUser}\n标题：${todoData.title}\n请及时处理`);
+
+        // 如果当前在我的待办标签且是管理员/执行人本人，重新渲染列表
+        if (document.querySelector('.tab-btn.active').getAttribute('data-tab') === 'my-todo') {
+          renderTodoList();
+        }
+      });
+    }
+
+    // 绑定退出登录
+    function bindLogout() {
+      const logoutBtn = document.getElementById('logoutBtn');
+      logoutBtn.addEventListener('click', function() {
+        if (confirm('确定要退出登录吗？')) {
+          // 清除登录状态
+          localStorage.removeItem('currentLoginUser');
+          // 停止定时器
+          stopReminderTimer();
+          // 返回登录页
+          document.getElementById('mainPage').style.display = 'none';
+          document.getElementById('loginPage').style.display = 'block';
+          // 清空输入框
+          document.getElementById('username').value = '';
+          document.getElementById('password').value = '';
+        }
+      });
+    }
+
+    // 绑定管理员弹窗事件
+    function bindAdminEvents() {
+      const adminBtn = document.getElementById('adminBtn');
+      const adminModal = document.getElementById('adminModal');
+      const closeModal = document.getElementById('closeModal');
+      const createUserBtn = document.getElementById('createUserBtn');
+
+      // 打开管理员弹窗
+      adminBtn.addEventListener('click', function() {
+        adminModal.style.display = 'flex';
+        // 加载现有账号列表
+        loadUserList();
+      });
+
+      // 关闭管理员弹窗
+      closeModal.addEventListener('click', function() {
+        adminModal.style.display = 'none';
+      });
+
+      // 点击弹窗外区域关闭
+      window.addEventListener('click', function(e) {
+        if (e.target === adminModal) {
+          adminModal.style.display = 'none';
+        }
+      });
+
+      // 创建新账号
+      createUserBtn.addEventListener('click', function() {
+        const newUsername = document.getElementById('newUsername').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const userRole = document.getElementById('userRole').value;
+
+        if (!newUsername || !newPassword) {
+          alert('用户名和密码不能为空！');
+          return;
+        }
+
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        if (users[newUsername]) {
+          alert('该用户名已存在，请更换！');
+          return;
+        }
+
+        // 创建新账号
+        users[newUsername] = {
+          password: newPassword,
+          todos: [],
+          role: userRole
+        };
+        localStorage.setItem('todoUsers', JSON.stringify(users));
+
+        alert('账号创建成功！');
+        // 清空输入框
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        // 重新加载账号列表
+        loadUserList();
+      });
+    }
+
+    // 加载账号列表
+    function loadUserList() {
+      const usersStr = localStorage.getItem('todoUsers');
+      const users = JSON.parse(usersStr);
+      const userListEl = document.getElementById('userList');
+      userListEl.innerHTML = '';
+
+      for (const username in users) {
+        const user = users[username];
+        const roleClass = user.role === 'admin' ? 'role-admin' : 'role-user';
+        const roleText = user.role === 'admin' ? '管理员' : '普通用户';
+
+        const userItem = document.createElement('div');
+        userItem.className = 'user-item';
+        userItem.innerHTML = `
+          <span>${username}</span>
+          <span class="user-role ${roleClass}">${roleText}</span>
+        `;
+        userListEl.appendChild(userItem);
+      }
+    }
+
+    // 渲染待办列表
+    function renderTodoList() {
+      const currentUser = localStorage.getItem('currentLoginUser');
+      const usersStr = localStorage.getItem('todoUsers');
+      const users = JSON.parse(usersStr);
+      const currentUserInfo = users[currentUser];
+      
+      // 收集待办数据
+      let allTodos = [];
+
+      // 1. 管理员能看到所有待办
+      if (currentUserInfo.role === 'admin') {
+        for (const username in users) {
+          if (users[username].todos && users[username].todos.length > 0) {
+            allTodos = allTodos.concat(users[username].todos);
+          }
+        }
+      } 
+      // 2. 普通用户仅显示执行人是自己的待办
+      else {
+        for (const username in users) {
+          if (users[username].todos && users[username].todos.length > 0) {
+            const assignedToMe = users[username].todos.filter(todo => todo.executor === currentUser);
+            allTodos = allTodos.concat(assignedToMe);
+          }
+        }
+      }
+
+      // 去重并按创建时间排序
+      const uniqueTodos = Array.from(new Map(allTodos.map(todo => [todo.id, todo])).values());
+      uniqueTodos.sort((a, b) => b.id - a.id); // 最新的在前
+
+      // 筛选待办
+      let filteredTodos = [];
+      if (currentFilter === 'pending') {
+        filteredTodos = uniqueTodos.filter(todo => todo.status === 'pending');
+      } else if (currentFilter === 'completed') {
+        filteredTodos = uniqueTodos.filter(todo => todo.status === 'completed');
+      } else {
+        filteredTodos = uniqueTodos;
+      }
+
+      const todoListEl = document.getElementById('todoList');
+      if (filteredTodos.length === 0) {
+        todoListEl.innerHTML = `<div class="empty-tip">暂无${currentFilter === 'all' ? '' : currentFilter === 'pending' ? '待处理' : '已完成'}待办事项</div>`;
+        return;
+      }
+
+      let listHtml = '';
+      filteredTodos.forEach(todo => {
+        const deadline = todo.deadline 
+          ? new Date(todo.deadline).toLocaleString('zh-CN') 
+          : '无';
+        const statusClass = todo.status === 'pending' ? 'status-pending' : 'status-completed';
+        const statusText = todo.status === 'pending' ? '待处理' : '已完成';
+
+        // 简略内容（超出50字省略）
+        const briefContent = todo.content ? todo.content.substring(0, 50) + (todo.content.length > 50 ? '...' : '') : '无详细内容';
+
+        listHtml += `
+          <div class="todo-item" onclick="openTodoDetail(${todo.id})" data-id="${todo.id}">
+            <div class="todo-header">
+              <div class="todo-title">${todo.title}</div>
+              <div class="todo-status ${statusClass}">${statusText}</div>
+            </div>
+            <div class="todo-meta">
+              <span>创建人：${todo.creator}</span>
+              <span>创建时间：${todo.createTime}</span>
+              <span>截止时间：${deadline}</span>
+              ${todo.remindCount > 0 ? `<span style="color: #e74c3c;">已催办${todo.remindCount}次</span>` : ''}
+            </div>
+            <div class="todo-brief">${briefContent}</div>
+          </div>
+        `;
+      });
+
+      todoListEl.innerHTML = listHtml;
+    }
+
+    // 打开待办详情弹窗
+    function openTodoDetail(todoId) {
+      const currentUser = localStorage.getItem('currentLoginUser');
+      const usersStr = localStorage.getItem('todoUsers');
+      const users = JSON.parse(usersStr);
+      
+      // 找到待办所属用户和详情
+      let todo = null;
+      currentTodoOwner = null;
+      currentTodoCreator = null;
+      currentTodoExecutor = null;
+      
+      for (const username in users) {
+        if (users[username].todos) {
+          const foundTodo = users[username].todos.find(t => t.id === todoId);
+          if (foundTodo) {
+            todo = foundTodo;
+            currentTodoOwner = username;
+            currentTodoCreator = todo.creator;
+            currentTodoExecutor = todo.executor;
+            break;
+          }
+        }
+      }
+
+      if (!todo || !currentTodoOwner) {
+        alert('待办事项不存在！');
+        return;
+      }
+
+      // 保存当前待办ID
+      currentTodoId = todoId;
+
+      // 填充详情数据
+      document.getElementById('detailTitle').textContent = todo.title;
+      document.getElementById('detailCreator').textContent = todo.creator;
+      document.getElementById('detailExecutor').textContent = todo.executor;
+      document.getElementById('detailCreateTime').textContent = todo.createTime;
+      document.getElementById('detailDeadline').textContent = todo.deadline ? new Date(todo.deadline).toLocaleString('zh-CN') : '无';
+      document.getElementById('detailStatus').textContent = todo.status === 'pending' ? '待处理' : '已完成';
+      document.getElementById('editContent').value = todo.content || '';
+
+      // 显示图片预览（带删除按钮）
+      renderImagePreview(todo.images || []);
+
+      // 控制按钮显示/隐藏
+      const remindBtn = document.getElementById('detailRemindBtn');
+      const deleteBtn = document.getElementById('detailDeleteBtn');
+      const completeBtn = document.getElementById('detailCompleteBtn');
+      
+      // 只有创建人能看到催办和删除按钮
+      if (currentUser === currentTodoCreator) {
+        remindBtn.style.display = 'block';
+        deleteBtn.style.display = 'block';
+        // 已完成的待办隐藏催办按钮
+        if (todo.status === 'completed') {
+          remindBtn.style.display = 'none';
+        }
+      } else {
+        remindBtn.style.display = 'none';
+        deleteBtn.style.display = 'none';
+      }
+
+      // 控制完成按钮状态
+      if (todo.status === 'completed') {
+        completeBtn.disabled = true;
+        completeBtn.textContent = '已完成';
+        completeBtn.style.backgroundColor = '#7f8c8d';
+      } else {
+        completeBtn.disabled = false;
+        completeBtn.textContent = '标记为完成';
+        completeBtn.style.backgroundColor = '#3498db';
+      }
+
+      // 显示详情弹窗
+      document.getElementById('todoDetailModal').style.display = 'flex';
+    }
+
+    // 绑定详情弹窗事件
+    function bindDetailEvents() {
+      // 关闭弹窗
+      document.getElementById('detailClose').addEventListener('click', function() {
+        document.getElementById('todoDetailModal').style.display = 'none';
+        currentTodoId = null;
+        currentTodoOwner = null;
+        currentTodoCreator = null;
+        currentTodoExecutor = null;
+      });
+
+      // 点击弹窗外关闭
+      document.getElementById('todoDetailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+          currentTodoId = null;
+          currentTodoOwner = null;
+          currentTodoCreator = null;
+          currentTodoExecutor = null;
+        }
+      });
+
+      // 标记为完成
+      document.getElementById('detailCompleteBtn').addEventListener('click', function() {
+        if (!currentTodoId || !currentTodoOwner) return;
+        
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+        
+        if (todoIndex !== -1) {
+          users[currentTodoOwner].todos[todoIndex].status = 'completed';
+          localStorage.setItem('todoUsers', JSON.stringify(users));
+          
+          // 更新弹窗状态
+          document.getElementById('detailStatus').textContent = '已完成';
+          this.disabled = true;
+          this.textContent = '已完成';
+          this.style.backgroundColor = '#7f8c8d';
+          
+          // 隐藏催办按钮
+          document.getElementById('detailRemindBtn').style.display = 'none';
+          
+          // 发送通知
+          sendNotification(
+            '✅ 待办事项已完成',
+            `标题：${users[currentTodoOwner].todos[todoIndex].title}\n执行人：${users[currentTodoOwner].todos[todoIndex].executor}`
+          );
+          
+          // 重新渲染列表
+          renderTodoList();
+        }
+      });
+
+      // 保存修改
+      document.getElementById('detailSaveBtn').addEventListener('click', function() {
+        if (!currentTodoId || !currentTodoOwner) return;
+        
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+        
+        if (todoIndex !== -1) {
+          // 更新内容
+          users[currentTodoOwner].todos[todoIndex].content = document.getElementById('editContent').value;
+          // 保存修改
+          localStorage.setItem('todoUsers', JSON.stringify(users));
+          
+          alert('待办事项修改保存成功！');
+          // 重新渲染列表和弹窗内容
+          renderTodoList();
+          document.getElementById('editContent').value = users[currentTodoOwner].todos[todoIndex].content;
+        }
+      });
+
+      // 催办按钮事件
+      document.getElementById('detailRemindBtn').addEventListener('click', function() {
+        if (!currentTodoId || !currentTodoOwner || !currentTodoExecutor) return;
+        
+        // 验证执行人是否在线（当前登录用户是否是执行人）
+        const currentUser = localStorage.getItem('currentLoginUser');
+        if (currentUser === currentTodoExecutor) {
+          alert('不能催办自己的待办！');
+          return;
+        }
+
+        // 更新催办次数
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+        
+        if (todoIndex !== -1) {
+          // 增加催办次数
+          users[currentTodoOwner].todos[todoIndex].remindCount = (users[currentTodoOwner].todos[todoIndex].remindCount || 0) + 1;
+          localStorage.setItem('todoUsers', JSON.stringify(users));
+          
+          // 发送催办通知给执行人（带确认弹窗）
+          sendRemindNotification(
+            currentTodoCreator,
+            currentTodoExecutor,
+            users[currentTodoOwner].todos[todoIndex].title,
+            users[currentTodoOwner].todos[todoIndex].remindCount
+          );
+          
+          // 提示创建人
+          alert(`已向执行人${currentTodoExecutor}发送催办通知！`);
+          
+          // 重新渲染列表
+          renderTodoList();
+        }
+      });
+
+      // 删除待办按钮事件
+      document.getElementById('detailDeleteBtn').addEventListener('click', function() {
+        if (!currentTodoId || !currentTodoOwner) return;
+        
+        if (!confirm('确定要删除该待办事项吗？此操作不可恢复！')) {
+          return;
+        }
+
+        // 删除待办
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+        
+        if (todoIndex !== -1) {
+          // 删除待办
+          users[currentTodoOwner].todos.splice(todoIndex, 1);
+          localStorage.setItem('todoUsers', JSON.stringify(users));
+          
+          alert('待办事项删除成功！');
+          
+          // 关闭详情弹窗
+          document.getElementById('todoDetailModal').style.display = 'none';
+          
+          // 重新渲染列表
+          renderTodoList();
+          
+          // 重置全局变量
+          currentTodoId = null;
+          currentTodoOwner = null;
+          currentTodoCreator = null;
+          currentTodoExecutor = null;
+        }
+      });
+    }
+
+    // 绑定图片上传事件
+    function bindImageUpload() {
+      const imageUpload = document.getElementById('imageUpload');
+      imageUpload.addEventListener('change', function(e) {
+        if (!currentTodoId || !currentTodoOwner) {
+          alert('请先选择一个待办事项！');
+          this.value = '';
+          return;
+        }
+
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const usersStr = localStorage.getItem('todoUsers');
+        const users = JSON.parse(usersStr);
+        const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+        
+        if (todoIndex === -1) return;
+
+        // 处理每个上传的图片
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (!file.type.startsWith('image/')) continue;
+
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            // 将图片转为base64存储
+            const base64 = event.target.result;
+            users[currentTodoOwner].todos[todoIndex].images = users[currentTodoOwner].todos[todoIndex].images || [];
+            users[currentTodoOwner].todos[todoIndex].images.push(base64);
+            
+            // 保存并更新预览
+            localStorage.setItem('todoUsers', JSON.stringify(users));
+            renderImagePreview(users[currentTodoOwner].todos[todoIndex].images);
+          };
+          reader.readAsDataURL(file);
+        }
+
+        // 清空文件选择器
+        this.value = '';
+      });
+    }
+
+    // 渲染图片预览（带删除按钮）
+    function renderImagePreview(images) {
+      const previewContainer = document.getElementById('imagePreview');
+      previewContainer.innerHTML = '';
+
+      if (!images || images.length === 0) {
+        previewContainer.innerHTML = '<div style="color:#7f8c8d; font-size:13px;">暂无图片附件</div>';
+        return;
+      }
+
+      images.forEach((imgBase64, index) => {
+        // 创建图片包装器
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-preview-wrapper';
+        
+        // 创建图片元素
+        const imgEl = document.createElement('img');
+        imgEl.src = imgBase64;
+        imgEl.className = 'image-preview';
+        imgEl.title = `图片${index + 1}`;
+        
+        // 创建删除按钮
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-img-btn';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = function(e) {
+          e.stopPropagation(); // 阻止事件冒泡
+          deleteImage(index);
+        };
+        
+        // 点击图片查看大图
+        imgEl.addEventListener('click', function() {
+          const imgModal = document.createElement('div');
+          imgModal.style.position = 'fixed';
+          imgModal.style.top = '0';
+          imgModal.style.left = '0';
+          imgModal.style.width = '100%';
+          imgModal.style.height = '100%';
+          imgModal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+          imgModal.style.display = 'flex';
+          imgModal.style.justifyContent = 'center';
+          imgModal.style.alignItems = 'center';
+          imgModal.style.zIndex = '10002';
+          
+          const bigImg = document.createElement('img');
+          bigImg.src = imgBase64;
+          bigImg.style.maxWidth = '90%';
+          bigImg.style.maxHeight = '90%';
+          
+          imgModal.appendChild(bigImg);
+          document.body.appendChild(imgModal);
+          
+          // 点击关闭
+          imgModal.addEventListener('click', function() {
+            document.body.removeChild(imgModal);
+          });
+        });
+        
+        // 组装元素
+        wrapper.appendChild(imgEl);
+        wrapper.appendChild(deleteBtn);
+        previewContainer.appendChild(wrapper);
+      });
+    }
+
+    // 删除图片
+    function deleteImage(index) {
+      if (!currentTodoId || !currentTodoOwner) return;
+      
+      if (!confirm('确定要删除这张图片吗？')) {
+        return;
+      }
+
+      const usersStr = localStorage.getItem('todoUsers');
+      const users = JSON.parse(usersStr);
+      const todoIndex = users[currentTodoOwner].todos.findIndex(t => t.id === currentTodoId);
+      
+      if (todoIndex !== -1) {
+        // 删除指定索引的图片
+        users[currentTodoOwner].todos[todoIndex].images = users[currentTodoOwner].todos[todoIndex].images || [];
+        users[currentTodoOwner].todos[todoIndex].images.splice(index, 1);
+        
+        // 保存修改
+        localStorage.setItem('todoUsers', JSON.stringify(users));
+        
+        // 重新渲染图片预览
+        renderImagePreview(users[currentTodoOwner].todos[todoIndex].images);
+        
+        alert('图片删除成功！');
+      }
+    }
+
+    // 发送催办通知（带确认弹窗）
+    function sendRemindNotification(creator, executor, title, remindCount) {
+      // 1. 桌面通知
+      if (Notification && Notification.permission === 'granted') {
+        new Notification('🔔 待办事项催办提醒', {
+          body: `创建人：${creator}\n待办标题：${title}\n这是第${remindCount}次催办\n请尽快处理！`,
+          icon: 'https://cdn-icons-png.flaticon.com/512/179/179342.png',
+          requireInteraction: true
+        });
+      }
+
+      // 2. 创建带确认的催办弹窗
+      createRemindConfirmModal(creator, title, remindCount);
+    }
+
+    // 创建带确认的催办弹窗
+    function createRemindConfirmModal(creator, title, remindCount) {
+      // 先移除已存在的催办弹窗
+      const oldModal = document.querySelector('.remind-modal');
+      if (oldModal) oldModal.remove();
+
+      // 创建新弹窗
+      const modal = document.createElement('div');
+      modal.className = 'remind-modal';
+      modal.innerHTML = `
+        <div class="remind-header">🔔 待办事项催办提醒</div>
+        <div class="remind-content">
+          <p>创建人：<strong>${creator}</strong></p>
+          <p>待办标题：<strong>${title}</strong></p>
+          <p>这是第<strong>${remindCount}</strong>次催办，请尽快处理！</p>
+        </div>
+        <button class="remind-confirm" onclick="this.parentElement.remove()">确认收到</button>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // 发送普通通知
+    function sendNotification(title, body) {
+      // 1. 桌面通知
+      if (Notification && Notification.permission === 'granted') {
+        new Notification(title, {
+          body: body,
+          icon: 'https://cdn-icons-png.flaticon.com/512/179/179342.png',
+          requireInteraction: true
+        });
+      }
+
+      // 2. 页面内提醒弹窗
+      createReminderModal(title, body);
+    }
+
+    // 创建普通提醒弹窗
+    function createReminderModal(title, content) {
+      // 先移除已存在的弹窗
+      const oldModal = document.querySelector('.reminder-modal');
+      if (oldModal) oldModal.remove();
+
+      // 创建新弹窗
+      const modal = document.createElement('div');
+      modal.className = 'reminder-modal';
+      modal.innerHTML = `
+        <div class="reminder-header">
+          <div class="reminder-title">${title}</div>
+          <span class="reminder-close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+        </div>
+        <div class="reminder-content">${content.replace(/\n/g, '<br>')}</div>
+      `;
+      document.body.appendChild(modal);
+
+      // 5秒后自动关闭
+      setTimeout(() => {
+        if (modal) modal.remove();
+      }, 5000);
+    }
+
+    // 启动提醒定时器
+    function startReminderTimer() {
+      // 先停止已有定时器
+      stopReminderTimer();
+      // 立即检查一次
+      checkReminderTodos();
+      // 设置定时检查
+      reminderTimer = setInterval(checkReminderTodos, CHECK_INTERVAL);
+    }
+
+    // 停止提醒定时器
+    function stopReminderTimer() {
+      if (reminderTimer) {
+        clearInterval(reminderTimer);
+        reminderTimer = null;
+      }
+    }
+
+    // 检查需要提醒的待办
+    function checkReminderTodos() {
+      const currentUser = localStorage.getItem('currentLoginUser');
+      if (!currentUser) return;
+
+      const usersStr = localStorage.getItem('todoUsers');
+      const users = JSON.parse(usersStr);
+      const currentUserInfo = users[currentUser];
+      
+      // 收集所有需要提醒的待办
+      let reminderTodos = [];
+
+      // 管理员检查所有待办
+      if (currentUserInfo.role === 'admin') {
+        for (const username in users) {
+          if (users[username].todos) {
+            reminderTodos = reminderTodos.concat(users[username].todos);
+          }
+        }
+      } 
+      // 普通用户只检查执行人是自己的待办
+      else {
+        for (const username in users) {
+          if (users[username].todos) {
+            const assignedToMe = users[username].todos.filter(todo => todo.executor === currentUser && todo.status === 'pending');
+            reminderTodos = reminderTodos.concat(assignedToMe);
+          }
+        }
+      }
+
+      // 去重
+      const uniqueTodos = Array.from(new Map(reminderTodos.map(todo => [todo.id, todo])).values());
+      const now = new Date().getTime();
+
+      uniqueTodos.forEach(todo => {
+        // 只检查待处理且有截止时间的待办
+        if (todo.status === 'pending' && todo.deadline) {
+          const deadline = new Date(todo.deadline).getTime();
+          const timeDiff = deadline - now;
+
+          // 截止时间在15分钟内 或 已超时，触发提醒
+          if (timeDiff > 0 && timeDiff <= REMIND_TIME) {
+            sendNotification(
+              '⏰ 待办事项即将到期',
+              `标题：${todo.title}\n创建人：${todo.creator}\n剩余时间：${Math.ceil(timeDiff/60000)}分钟`
+            );
+          } else if (timeDiff <= 0) {
+            sendNotification(
+              '⚠️ 待办事项已超时',
+              `标题：${todo.title}\n创建人：${todo.creator}\n已超时：${Math.ceil(Math.abs(timeDiff)/60000)}分钟`
+            );
+          }
+        }
+      });
+    }
+
+    // 页面关闭时清理定时器
+    window.addEventListener('beforeunload', function() {
+      stopReminderTimer();
+    });
+  </script>
+</body>
+</html>
